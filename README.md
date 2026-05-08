@@ -16,7 +16,7 @@ IG_i(x) = (x_i − x'_i) × ∫₀¹ (∂F/∂x_i)(x' + α(x − x')) dα
 
 The completeness property guarantees that attributions sum to `F(x) − F(x')`. In practice, the integral is approximated by sampling uniformly along `α ∈ [0, 1]`.
 
-The problem is that most models make their decision early: the output logit shoots up near `α = 0` and then plateaus. Uniform sampling wastes most steps in the saturated, flat region where `∂F/∂α ≈ 0` — those gradients are noisy and contribute little to the sum. Achieving low approximation error therefore requires very high step counts.
+The problem is that most models make their in a narrow window along the path: the output logit shoots at a certain interpolation point and then plateaus. Uniform sampling wastes most steps in the saturated, flat region where `∂F/∂α ≈ 0` — those gradients are noisy and contribute little to the sum. Achieving low approximation error therefore requires very high step counts.
 
 ---
 
