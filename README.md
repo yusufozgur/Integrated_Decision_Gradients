@@ -53,7 +53,7 @@ uv add integrated-decision-gradients
 **From source:**
 
 ```bash
-git clone https://github.com/yusufozgur/integrated-decision-gradients
+git clone https://github.com/yusufozgur/integrated_decision_gradients
 cd integrated-decision-gradients
 uv sync                   # install all dependencies into .venv
 uv add --editable .       # install the package itself in editable mode
