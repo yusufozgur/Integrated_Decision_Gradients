@@ -1,6 +1,6 @@
 [project]
 name = "integrated-decision-gradients"
-version = "0.1.0"
+version = "0.1.1"
 description = "Integrated Decision Gradients is an attribution method that improves upon Integrated Gradients by concentrating attribution mass in the region where the model actually makes its decision."
 readme = "README.md"
 authors = [

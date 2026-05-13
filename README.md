@@ -16,7 +16,20 @@ IG_i(x) = (x_i − x'_i) × ∫₀¹ (∂F/∂x_i)(x' + α(x − x')) dα
 
 The completeness property guarantees that attributions sum to `F(x) − F(x')`. In practice, the integral is approximated by sampling uniformly along `α ∈ [0, 1]`.
 
-The problem is that most models make their in a narrow window along the path: the output logit shoots at a certain interpolation point and then plateaus. Uniform sampling wastes most steps in the saturated, flat region where `∂F/∂α ≈ 0` — those gradients are noisy and contribute little to the sum. Achieving low approximation error therefore requires very high step counts.
+The problem is that most models make their decisions in a narrow window along the path: the output logit shoots at a certain interpolation point and then plateaus. Uniform sampling wastes most steps in the saturated, flat region where `∂F/∂α ≈ 0` — those gradients are noisy and contribute little to the sum. Achieving low approximation error therefore requires very high step counts.
+
+---
+
+## Path Dynamics: Image Classification Example
+
+![Figure of path integral behaviour for image classification models](image_classification_example.png)
+*For image classification models, decision gradients are earlier in the baseline to input path. [Click For Image Source](https://www.slideshare.net/slideshow/explainable-ai-in-industry-kdd-2019-tutorial/161624041)*
+
+---
+
+## Path Dynamics: Sequence To Function Genomics Model Example
+![figure of path integral behaviour for ](alphagenome.png)
+*In a sequence to function genomic model such as AlphaGenome, decision gradients along the path are in a narrow band near the target.*
 
 ---
 
@@ -37,6 +50,37 @@ IDG_i(x) = (x_i − x'_i) × ∫₀¹ (∂F/∂x_i) · (∂F/∂α) dα
 ### 2. Adaptive Sampling
 
 A cheap pilot pre-characterization pass evaluates the model at `N` uniformly-spaced points to map out where the logit changes most. The `M` main integration steps are then allocated non-uniformly — more samples in the decision region, fewer in the saturated region — reducing Riemann-sum error for the same computational budget.
+
+
+![Overview by walker et al.](overview_by_walker.png)
+*Integrated decision gradients utilizes adaptive sampling for computational efficiency, and path gradient based importance factor for increased accuracy. Figure by Walker et al.*
+
+---
+
+## Performance
+
+Benchmarked on a logistic curve model with a sharp decision boundary. **Delta** is the completeness error `|Σ attributions − (F(x) − F(x'))|` — lower is better.
+
+| Method | Steps | Func Calls | Delta |
+|---|---|---|---|
+| Integrated Gradients (captum) | 30 | 30 | -1.20×10⁻³ |
+| Integrated Gradients (uniform) | 30 | 30 | -3.35×10⁻⁴ |
+| IDG (uniform) | 30 | 30 | -1.19×10⁻⁷ |
+| **IDG (adaptive sampling)** | **20** | **30** | **0.00** |
+
+IDG with adaptive sampling achieves exact completeness with fewer integration steps than standard IG, using the same number of function calls.
+
+---
+
+## Completeness
+
+Attributions satisfy the completeness property:
+
+```
+Σᵢ IDG_i(x) = F(x) − F(x')
+```
+
+This is enforced by rescaling raw attributions so they sum exactly to the output difference. The convergence delta returned by `return_convergence_delta=True` measures how far the raw (pre-rescaling) sum is from this target — values close to 0 indicate a well-resolved integral.
 
 ---
 
@@ -143,33 +187,6 @@ get_integrated_gradients(
 ```
 
 Parameters are identical to `get_integrated_decision_gradients`, minus `adaptive` and `n_prechar_steps`.
-
----
-
-## Performance
-
-Benchmarked on a logistic curve model with a sharp decision boundary. **Delta** is the completeness error `|Σ attributions − (F(x) − F(x'))|` — lower is better.
-
-| Method | Steps | Func Calls | Delta |
-|---|---|---|---|
-| Integrated Gradients (captum) | 30 | 30 | -1.20×10⁻³ |
-| Integrated Gradients (uniform) | 30 | 30 | -3.35×10⁻⁴ |
-| IDG (uniform) | 30 | 30 | -1.19×10⁻⁷ |
-| **IDG (adaptive sampling)** | **20** | **30** | **0.00** |
-
-IDG with adaptive sampling achieves exact completeness with fewer integration steps than standard IG, using the same number of function calls.
-
----
-
-## Completeness
-
-Attributions satisfy the completeness property:
-
-```
-Σᵢ IDG_i(x) = F(x) − F(x')
-```
-
-This is enforced by rescaling raw attributions so they sum exactly to the output difference. The convergence delta returned by `return_convergence_delta=True` measures how far the raw (pre-rescaling) sum is from this target — values close to 0 indicate a well-resolved integral.
 
 ---
 
